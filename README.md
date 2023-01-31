@@ -256,7 +256,88 @@ fan-daemon installed sucessfully!
 ```
 If it was successful, then the fan should start working within 1-2 minutes approximately
 
-### Update OS & Install Wi-Fi
+### Setup and login through SSH
+
+Create the `.ssh` and authorized_keys files, then set the permissions
+
+```shell
+$ mkdir .ssh
+$ chmod 700 .ssh
+$ cd .ssh
+$ touch authorized_keys
+$ chmod 644 authorized_keys
+```
+
+Add your public key to the `authorized_keys` file and then connect through SSH so that you won't have to use `screen` anymore.
+
+### Install Wi-Fi
+
+**IMPORTANT** Do not update the OS yet! First install the Wi-Fi drivers
+
+```shell
+$ sudo apt update
+$ sudo apt install apt-utils
+```
+
+Reboot
+
+```shell
+$ sudo add-apt-repository ppa:canonical-hwe-team/backport-iwlwifi
+$ sudo apt update
+$ sudo apt install backport-iwlwifi-dkms
+```
+
+Reboot again and verify that the wireless network card is correctly detected by the OS
+
+```shell
+$ nmcli device show
+
+...
+GENERAL.DEVICE:                         wlp1s0
+GENERAL.TYPE:                           wifi
+GENERAL.HWADDR:                         5C:80:B6:58:65:F1
+GENERAL.MTU:                            1500
+GENERAL.STATE:                          30 (disconnected)
+GENERAL.CONNECTION:                     --
+GENERAL.CON-PATH:                       --
+...
+```
+
+Connect to the network and enable auto-connect
+
+```shell
+$ nmcli device wifi list
+IN-USE  SSID                MODE   CHAN  RATE        SIGNAL  BARS  SECURITY
+        Some-Network-1  Infra  3     130 Mbit/s  69      ▂▄▆_  WPA1 WPA2
+        Some-Network-2  Infra  36    270 Mbit/s  59      ▂▄▆_  WPA2
+        Some-Network-3  Infra  9     270 Mbit/s  55      ▂▄__  WPA1 WPA2
+        Some-Network-4  Infra  9     130 Mbit/s  52      ▂▄__  WPA1 WPA2
+        Some-Network-5  Infra  11    130 Mbit/s  50      ▂▄__  WPA1 WPA2
+$ sudo nmcli device wifi connect Some-Network-1 --ask
+Password:
+Device 'wlp1s0' successfully activated with 'something-something-some-hash'.
+$ sudo nmcli connection modify Some-Network-1 connection.autoconnect yes
+```
+
+Modify Network Manager configuration file so that connection would be stable
+
+```shell
+$ sudo vim /etc/NetworkManager/NetworkManager.conf
+
+[main]
+... <-- Something here and then following line must be added below
+dhcp=dhclient
+...
+```
+
+Now the Nano should automatically connect to the previously specified wireless network
+
+### Update the OS
+
+Since the Wi-Fi backports don't work with versions `32.7.2` & `32.7.3`, it's advised to have some packages held back
+```shell
+$ sudo apt-mark hold nvidia-l4t-core nvidia-l4t-firmware nvidia-l4t-kernel
+```
 
 Next it's time to update the operating system with the latest packages
 
@@ -267,7 +348,7 @@ $ sudo apt upgrade
 As of the time of this writing, this will install to the latest _point release_ from 32.7.1 to 32.7.3  
 `4.9.299-tegra-32.7.3-20221122092935` over `4.9.253-tegra-32.7.1-20220219090432`
 
-### Resolve errors to updates
+### Resolve errors to updates (only if you update to 32.7.3)
 
 It's highly likely that there will be some errors with the update which case you should follow the instructions from [Solution : dpkg: error processing package nvidia-l4t-bootloader –configure)](https://forums.developer.nvidia.com/t/solution-dpkg-error-processing-package-nvidia-l4t-bootloader-configure/208627)
 
@@ -310,27 +391,15 @@ No apport report written because the error message indicates its a followup erro
  nvidia-l4t-initrd
 E: Sub-process /usr/bin/dpkg returned an error code (1)
 ```
-After following the instructions and correctly upgrading to the new version, install the Wi-Fi drivers via the Ubuntu PPA  
-Before the drivers install the `apt-utils` package as well.
+### Enable SPI
 
 ```shell
-$ sudo apt install apt-utils
-$ sudo add-apt-repository ppa:canonical-hwe-team/backport-iwlwifi
-$ sudo apt update
-$ sudo apt install backport-iwlwifi-dkms
+$ sudo modprobe spidev
+$ ls -l /dev | grep spidev
+$ sudo vim /etc/modules-load.d/spidev.conf
+
+spidev
+
+$ sudo reboot
+$ ls -l /dev | grep spidev
 ```
-Once it has successfully installed the packages, reboot the system.
-
-**NOTE**: In case the above doesn't work, you'll need to manually build the driver
-
-```shell
-$ git clone -b release/core52 --single-branch --recurse-submodules https://git.kernel.org/pub/scm/linux/kernel/git/iwlwifi/backport-iwlwifi.git
-$ make defconfig-iwlwifi-public
-$ sed -i 's/CPTCFG_IWLMVM_VENDOR_CMDS=y/# CPTCFG_IWLMVM_VENDOR_CMDS is not set/' .config
-$ make -j4
-$ sudo make install
-```
-
-### Setup Wi-Fi
-
-You can setup your Wi-Fi using the `nmcli` terminal app
