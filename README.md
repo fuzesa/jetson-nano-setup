@@ -393,6 +393,70 @@ E: Sub-process /usr/bin/dpkg returned an error code (1)
 ```
 ### Enable SPI
 
+First dump the current device tree using the `dtc` (_device-tree-compiler_) tool
+
+```shell
+$ sudo dtc -I fs -O dts -o proba_spi.dts /proc/device-tree
+```
+
+then edit the corresponding `dts` file and modify the appropriate lines (taken from [here](https://forums.developer.nvidia.com/t/about-using-spi-on-jetson-nano/210372/55)
+
+```shell
+$ vim proba_spi.dts
+```
+
+```
+2075                         spi1_mosi_pc0 {
+2076                                 nvidia,enable-input = <0x0>;
+2077                                 nvidia,pins = "spi1_mosi_pc0";
+2078                                 nvidia,tristate = <0x1>;
+2079                                 nvidia,function = "rsvd1";
+2080                                 nvidia,pull = <0x1>;
+2081                         };
+
+to
+
+2075                         spi1_mosi_pc0 {
+2076                                 nvidia,enable-input = <0x1>;
+2077                                 nvidia,pins = "spi1_mosi_pc0";
+2078                                 nvidia,tristate = <0x0>;
+2079                                 nvidia,function = "spi1";
+2080                                 nvidia,pull = <0x1>;
+2081                         };
+
+and for the other four spi1_xxx (there's two CS pins) pins as well
+```
+
+Compile the new `dts` file to `dtb` and copy it to the `/boot` directory
+
+```shell
+$ sudo dtc -I dts proba_spi.dts -O dtb -o proba-spi.dtb
+$ sudo cp proba-spi.dtb /boot
+```
+
+Edit the `/boot/extlinux/extlinux.conf` file and add the following line to the `FDT` section `APPEND`
+
+```shell
+LABEL primary
+      MENU LABEL primary kernel
+      LINUX /boot/Image
+      INITRD /boot/initrd
+      FDT /boot/proba-spi.dtb
+#      FDT /boot/proba-spi.dtb or /boot/kernel_tegra210-p3448-0000-p3449-0000-a02.dtb
+#      APPEND ${cbootargs} quiet root=/dev/mmcblk0p1 rw rootwait rootfstype=ext4 console=ttyS0,115200n8 console=tty0 fbcon=map:0 net.ifnames=0
+      APPEND root=PARTUUID=ef10edd4-18af-49df-9e6b-f92d341ab56d rw rootwait rootfstype=ext4 console=ttyS0,115200n8 console=tty0 fbcon=map:0 net.ifnames=0
+```
+
+Verify
+
+```shell
+$ sudo grep -C 4 spi1 /sys/kernel/debug/pinctrl/pinctrl-maps
+$ sudo cat /sys/kernel/debug/tegra_pinctrl_reg | grep -i spi
+$ sudo cat /sys/kernel/debug/tegra_gpio
+```
+
+Add an entry so that the `spidev` module is loaded at boot
+
 ```shell
 $ sudo modprobe spidev
 $ ls -l /dev | grep spidev
