@@ -467,3 +467,18 @@ spidev
 $ sudo reboot
 $ ls -l /dev | grep spidev
 ```
+
+### Adding user to groups
+To add the user to a group use
+```shell
+sudo usermod -a -G <name_of_group> <name_of_user>
+```
+Recommended groups: `jn1 adm dialout cdrom sudo audio dip video plugdev i2c lpadmin gdm lightdm sambashare weston-launch gpio`
+
+### Disable nvgetty
+ref: https://forums.developer.nvidia.com/t/read-write-permission-ttyths1/81623  
+```shell
+$ sudo systemctl stop nvgetty
+$ sudo systemctl disable nvgetty
+$ sudo udevadm trigger (or reboot)
+```
