@@ -55,7 +55,7 @@ Once ready, verify that everything worked correctly and you're able to access th
 
 Now you must copy the contents of the image file to the new created partition on the flash drive
 
-First, the image file must be mounted in order to access its contents, here GNOME's built-in Nautilus file system will be used for this
+First, the image file must be mounted in order to access its contents, here GNOME's built-in Nautilus file manager will be used for this
 
 ![Image mounted](img/5_image_mounted.png)
 
