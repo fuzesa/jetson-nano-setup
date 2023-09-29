@@ -434,7 +434,7 @@ $ sudo dtc -I dts proba_spi.dts -O dtb -o proba-spi.dtb
 $ sudo cp proba-spi.dtb /boot
 ```
 
-Edit the `/boot/extlinux/extlinux.conf` file and add the following line to the `FDT` section `APPEND`
+Edit the `/boot/extlinux/extlinux.conf` file and add the following line to the `FDT` section before `APPEND`
 
 ```shell
 LABEL primary
