@@ -482,3 +482,83 @@ $ sudo systemctl stop nvgetty
 $ sudo systemctl disable nvgetty
 $ sudo udevadm trigger (or reboot)
 ```
+### Testing different peripherals
+ -------------
+|Testing video|
+ -------------
+
+For CSI:
+
+On the Nano:
+video-viewer csi://0 rtp://<ip_of_computer>:1234 
+
+On the computer:
+gst-launch-1.0 -v udpsrc port=1234 \
+ caps = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96" ! \
+ rtph264depay ! decodebin ! videoconvert ! autovideosink
+ 
+For USB:
+video-viewer /dev/video1 rtp://<ip_of_computer>:1235 
+
+On the computer:
+gst-launch-1.0 -v udpsrc port=1235 \
+ caps = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96" ! \
+ rtph264depay ! decodebin ! videoconvert ! autovideosink
+
+ -----------
+|Testing GPS|
+ -----------
+
+Use 3.3V
+
+check for /dev/ttyTHS1
+```shell
+jn1@jn1:~$ ls -l /dev/ | grep THS
+crw-rw----  1 root dialout 238,   1 nov 21 10:14 ttyTHS1
+crw-rw----  1 root dialout 238,   2 mar  2  2023 ttyTHS2
+```
+if not, then make sure nvgetty is disabled
+ 
+sudo systemctl stop nvgetty
+sudo systemctl disable nvgetty
+
+then using picocom (install throuigh APT if not installed), using standard 9600 (default)
+```shell
+picocom /dev/ttyTHS1
+```
+
+ -----------
+|Testing IMU|
+ -----------
+
+Make sure usr part of the i2c group
+
+then to test for Accel + Gyro
+
+In case AD0 was driven low, it should be 68
+
+```shell
+jn1@jn1:~$ i2cdetect -y -r 0
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+60: -- -- -- -- -- -- -- -- 68 -- -- -- -- -- -- -- 
+70: -- -- -- -- -- -- -- --
+```
+then for magnetometer
+```shell
+jn1@jn1:~$ i2cdetect -y -r 1
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- 0c -- -- -- 
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+70: -- -- -- -- -- -- -- --
+```
