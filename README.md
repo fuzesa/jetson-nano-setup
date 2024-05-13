@@ -490,20 +490,28 @@ $ sudo udevadm trigger (or reboot)
 For CSI:
 
 On the Nano:
+```shell
 video-viewer csi://0 rtp://<ip_of_computer>:1234 
+```
 
 On the computer:
+```shell
 gst-launch-1.0 -v udpsrc port=1234 \
  caps = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96" ! \
  rtph264depay ! decodebin ! videoconvert ! autovideosink
+```
  
 For USB:
+```shell
 video-viewer /dev/video1 rtp://<ip_of_computer>:1235 
+```
 
 On the computer:
+```shell
 gst-launch-1.0 -v udpsrc port=1235 \
  caps = "application/x-rtp, media=(string)video, clock-rate=(int)90000, encoding-name=(string)H264, payload=(int)96" ! \
  rtph264depay ! decodebin ! videoconvert ! autovideosink
+```
 
  -----------
 |Testing GPS|
