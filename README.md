@@ -258,8 +258,8 @@ If it was successful, then the fan should start working within 1-2 minutes appro
 
 ### Setup and login through SSH
 
-Create the `.ssh` and authorized_keys files, then set the permissions
-
+Create the `.ssh` and authorized_keys files, then set the permissions  
+Single command `mkdir .ssh && chmod 700 .ssh && cd .ssh && touch authorized_keys && chmod 644 authorized_keys`
 ```shell
 $ mkdir .ssh
 $ chmod 700 .ssh
@@ -267,7 +267,6 @@ $ cd .ssh
 $ touch authorized_keys
 $ chmod 644 authorized_keys
 ```
-
 Add your public key to the `authorized_keys` file and then connect through SSH so that you won't have to use `screen` anymore.
 
 ### Install Wi-Fi
