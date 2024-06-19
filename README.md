@@ -1,3 +1,5 @@
+WIFI page: https://community.infineon.com/t5/AIROC-Wi-Fi-MCUs/Wifi-driver-fmac-modules-Build-and-bring-up-for-Nvidia-Nano-B01-board/td-p/405329#.
+
 # Jetson Nano Boot from USB Headless Setup Guide
 
 ---
